@@ -5,16 +5,17 @@ import math
 
 
 class LinearRegression:
-    a = 0
-    b = 0
+    b0 = 0
+    b1 = 0
 
     def fit(self, X, Y):
         n = len(X)
-        self.a = (sum(Y) * sum(X ** 2) - sum(X) * sum(X * Y)) / (n * sum(X ** 2) - sum(X) ** 2)
-        self.b = (n * sum(X * Y) - sum(X) * sum(Y)) / (n * sum(X ** 2) - sum(X) ** 2)
+        self.b0 = (sum(Y) * sum(X ** 2) - sum(X) * sum(X * Y)) / (n * sum(X ** 2) - sum(X) ** 2)
+        self.b1 = (n * sum(X * Y) - sum(X) * sum(Y)) / (n * sum(X ** 2) - sum(X) ** 2)
 
     def predict(self, X):
-        return self.a + self.b * X
+        print(f'{self.b0} + {self.b1} * X')
+        return self.b0 + self.b1 * X
 
     def getCharacteristics(self, X, Y):
         characteristics = {}
@@ -32,7 +33,14 @@ class LinearRegression:
         sigma_x = math.sqrt(sum((X - X_mean) ** 2) / (n - 1))
         sigma_y = math.sqrt(sum((Y - Y_mean) ** 2) / (n - 1))
         characteristics['kor_koef'] = cov / (sigma_x * sigma_y)
-        return characteristics
+
+        print(f"Еско = {characteristics['E_sko']}")
+        print(f"Ест = {characteristics['E_st']}")
+        print(f"Q = {characteristics['Q']}")
+        print(f"Qr = {characteristics['Qr']}")
+        print(f"Qe = {characteristics['Qe']}")
+        print(f"Коэффициент детерминации = {characteristics['det_koef']}")
+        print(f"Коэффициент корреляции = {characteristics['kor_koef']}")
 
 
 def generateData(amount=30):
@@ -42,16 +50,16 @@ def generateData(amount=30):
     a = random.uniform(-10, +10)
     b = random.uniform(-10, +10)
     X = np.random.permutation(
-        [(i + random.uniform(-5, +5)) for i in np.random.uniform(low=-10, high=+10, size=(amount,))])
+        [(i + random.uniform(-5, +5)) for i in np.random.uniform(low=-5, high=+5, size=(amount,))])
     Y = []
     for x in X:
         Y.append(f(x, a, b) + random.uniform(-10, +10))
     Y = np.array(Y)
-    return (X, Y)
+    return X, Y
 
 
 def plotGraph(lr, X_train, Y_train, X_test, Y_test):
-    x_pred = np.arange(-20, +20)
+    x_pred = np.arange(-10, +10)
     y_pred = lr.predict(x_pred)
     plt.plot(x_pred, y_pred, color='red', label='regression')
     plt.scatter(X_train, Y_train, label='train', s=3)
@@ -61,23 +69,14 @@ def plotGraph(lr, X_train, Y_train, X_test, Y_test):
 
 
 test_percent = 0.8
-X, Y = generateData(500)
+X, Y = generateData(100)
 
 train_quantity = int(len(X) * test_percent)
 X_train, Y_train = X[:train_quantity], Y[:train_quantity]
 X_test, Y_test = X[train_quantity:], Y[train_quantity:]
-# print(X_train, Y_train)
 
 lr = LinearRegression()
 lr.fit(X_train, Y_train)
-characteristics = lr.getCharacteristics(X, Y)
-
-print(f"Еско = {characteristics['E_sko']}")
-print(f"Ест = {characteristics['E_st']}")
-print(f"Q = {characteristics['Q']}")
-print(f"Qr = {characteristics['Qr']}")
-print(f"Qe = {characteristics['Qe']}")
-print(f"Коэффициент детерминации = {characteristics['det_koef']}")
-print(f"Коэффициент корреляции = {characteristics['kor_koef']}")
+lr.getCharacteristics(X, Y)
 
 plotGraph(lr, X_train, Y_train, X_test, Y_test)

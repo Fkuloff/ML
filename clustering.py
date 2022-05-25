@@ -128,9 +128,7 @@ def k_means(X, k, show_type='all', show_plots=True):
 
 k = 2
 X, original_clus = make_blobs(n_samples=500, centers=2, n_features=2, random_state=30)
-print(X)
-print(original_clus)
 plot_data(X)
 # Окончательный график и окончательные центры кластеров находятся в конце по умолчанию show_type имеет значение
 # 'all', чтобы получить только начальный и конечный график, установите show_type в 'ini_fin'
-cluster, centroid = k_means(X, k, show_type='all')
+cluster, centroid = k_means(X, k, show_type='ini_fin')
