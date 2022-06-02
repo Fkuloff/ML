@@ -3,6 +3,8 @@ import matplotlib.pyplot as plt
 import random
 import math
 
+import pandas as pd
+
 b0 = 0
 b1 = 0
 
@@ -15,37 +17,44 @@ def fit(X, Y):
 
 
 def predict(X):
-    print(f'{b0} + {b1} * X')
     return b0 + b1 * X
 
 
-def getCharacteristics(X, Y):
-    characteristics = {}
+def get_characteristics(X, Y):
     Y_mean = np.mean(Y)
     X_mean = np.mean(X)
     Y_pred = predict(X)
     n = len(X)
-    characteristics['E_sko'] = sum((Y - Y_pred) ** 2) / (len(X) - 2)
+    characteristics = {'E_sko': sum((Y - Y_pred) ** 2) / (len(X) - 2)}
+    # for i in range(len(X)):
+    #     print(f'({round(Y[i], 3)} - {round(Y_pred[i], 3)})2 +', end='')
+    print(f"\nЕско = {characteristics['E_sko']}")
+
     characteristics['E_st'] = math.sqrt(characteristics['E_sko'])
+    print(f"Ест = {characteristics['E_st']}")
+
     characteristics['Q'] = sum((Y - Y_mean) ** 2)
+    print(f"Q = {characteristics['Q']}")
+
     characteristics['Qr'] = sum((Y_pred - Y_mean) ** 2)
+    print(f"Qr = {characteristics['Qr']}")
+
     characteristics['Qe'] = sum((Y - Y_pred) ** 2)
+    print(f"Qe = {characteristics['Qe']}")
+
     characteristics['det_koef'] = characteristics['Qr'] / characteristics['Q']
+    print(f"Коэффициент детерминации = {characteristics['det_koef']}")
+
     cov = sum((X - X_mean) * (Y - Y_mean)) / n
     sigma_x = math.sqrt(sum((X - X_mean) ** 2) / (n - 1))
     sigma_y = math.sqrt(sum((Y - Y_mean) ** 2) / (n - 1))
     characteristics['kor_koef'] = cov / (sigma_x * sigma_y)
-
-    print(f"Еско = {characteristics['E_sko']}")
-    print(f"Ест = {characteristics['E_st']}")
-    print(f"Q = {characteristics['Q']}")
-    print(f"Qr = {characteristics['Qr']}")
-    print(f"Qe = {characteristics['Qe']}")
-    print(f"Коэффициент детерминации = {characteristics['det_koef']}")
     print(f"Коэффициент корреляции = {characteristics['kor_koef']}")
 
+    print(f'{b0} + {b1} * X + {characteristics["E_st"]}')
 
-def generateData(amount=30):
+
+def generate_data(amount=30):
     def f(x, a, b):
         return a + b * x
 
@@ -71,13 +80,16 @@ def plotGraph(X_train, Y_train, X_test, Y_test):
 
 
 test_percent = 0.8
-X, Y = generateData(100)
+# X, Y = generate_data(10)
+
+temp = pd.read_excel('lr.xlsx')
+X, Y = temp["X"].to_numpy(), temp["Y"].to_numpy()
 
 train_quantity = int(len(X) * test_percent)
 X_train, Y_train = X[:train_quantity], Y[:train_quantity]
 X_test, Y_test = X[train_quantity:], Y[train_quantity:]
 
 b0, b1 = fit(X_train, Y_train)
-getCharacteristics(X, Y)
+get_characteristics(X, Y)
 
 plotGraph(X_train, Y_train, X_test, Y_test)
