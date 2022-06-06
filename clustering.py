@@ -22,11 +22,20 @@ def assign_cluster(X, ini_centroids, k):
     cluster = []  # для сохранения соответствующего номера кластера точки данных
     # для каждой точки в X
     temp_arr = []
+    euc_dist_all = []
     for i in range(len(X)):
-        euc_dist = [np.linalg.norm(np.subtract(X[i], ini_centroids[j])) for j in range(k)]
+        euc_dist = []
+        for j in range(k):
+            print(f'({X[i][0]} - {ini_centroids[j][0]}) + ({X[i][1]} - {ini_centroids[j][1]})')
+            euc_dist.append(np.linalg.norm(np.subtract(X[i], ini_centroids[j])))
+
+        print(f'Евклидово = {euc_dist}')
+        euc_dist_all.append(euc_dist)
         idx = np.argmin(euc_dist)  # возвращает индекс, значение которого является минимальным
         temp_arr.append(euc_dist)
         cluster.append(idx)  # добавляет индекс к кластерному массиву
+    df = pd.DataFrame(euc_dist_all)
+    print(df)
     print(f'Определяет, какая точка данных относится к какому кластеру {cluster}')
     return np.asarray(cluster)
 
@@ -35,7 +44,11 @@ def assign_cluster(X, ini_centroids, k):
 def compute_centroid(X, clusters, k):
     centroid = []  # сохраняет значения центроида
     for i in range(k):
-        temp_arr = [X[j] for j in range(len(X)) if clusters[j] == i]
+        temp_arr = []
+        for j in range(len(X)):
+            if clusters[j] == i:
+                temp_arr.append(X[j])
+        print(f'Центроид для кластера {i} = {temp_arr}')
         # берем среднее значение между этими точками и сохраняем его в массиве центроидов
         centroid.append(np.mean(temp_arr, axis=0))
     print(f'Обновленный центроид {centroid}')
@@ -91,9 +104,9 @@ def k_means(X, k, show_type='all', show_plots=True):
         if show_type == 'all' and show_plots:
             show_clusters(X, cluster, c_prev, ini_centroid, False, False, show_plots=show_plots)
         c_new = compute_centroid(X, cluster, k)  # для вычисления новой точки центроида
-        # print(c_new)
+        print(f'Вычисление новой точки центроида = {c_new}')
         diff = difference(c_prev, c_new)  # чтобы вычислить разницу между центроидами
-        print(diff)
+        # print(diff)
         c_prev = c_new  # теперь новый центроид становится текущей точкой центроида
     # Конечные кластерные центры
     if show_plots:

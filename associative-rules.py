@@ -77,17 +77,21 @@ def find_all_quantity(item):
 
 
 def support(item):
+    print(
+        f'support = {round(find_all_quantity(item), 3)} / {round(len(trSubjectSets), 3)} = {round(find_all_quantity(item) / len(trSubjectSets) * 100, 1)}')
     return round(find_all_quantity(item) / len(trSubjectSets) * 100, 1)
 
 
 def reliability(item, condition):
     q1 = find_all_quantity(item)
     q2 = find_all_quantity(condition)
+    print(f'reliability = {q1} / {q2} = {round(q1 / q2 * 100, 1)}')
     return round(q1 / q2 * 100, 1)
 
 
 def lift(reliability, res):
     q = find_all_quantity(res)
+    print(f'lift = {reliability} / ({q} / {len(trSubjectSets)} * 100) = {round(reliability / (q / len(trSubjectSets) * 100), 2)}')
     return round(reliability / (q / len(trSubjectSets) * 100), 2)
 
 
@@ -102,14 +106,16 @@ def data_associative_rules():
 
 
 def data_set(item, subsets):
-    return [[
-        con := clear_lst(item, subset),
-        res := list(subset),
-        support(item),
-        rel := reliability(item, con),
-        lift(rel, res)
+    return [
+        [
+            con := clear_lst(item, subset),
+            res := list(subset),
+            support(item),
+            rel := reliability(item, con),
+            lift(rel, res)
+        ]
+        for subset in subsets
     ]
-        for subset in subsets]
 
 
 def popular_sets(dfSubjectSets):
@@ -139,10 +145,13 @@ def main():
     dfAssociativeRules = pd.DataFrame(data_all,
                                       columns=["Условие", "Следствие", "Поддержка", "Достоверность", "Лифт"])
     print('Все ассоциативные правила:')
-    print(dfAssociativeRules, end='\n\n')
+    print(dfAssociativeRules.to_string(), end='\n\n')
 
     print('Правила после фильтров:')
-    print(dfAssociativeRules.loc[(dfAssociativeRules["Поддержка"] >= 20) & (dfAssociativeRules["Достоверность"] >= 70)]
+    print(dfAssociativeRules.loc[
+              (dfAssociativeRules["Поддержка"] >= 20) &
+              (dfAssociativeRules["Достоверность"] >= 70)
+              ]
           .sort_values(by=["Достоверность"], ascending=False)
           .reset_index(drop=True)
           .to_string(), end='\n\n')
@@ -150,15 +159,15 @@ def main():
     print('Популярные наборы')
     popular_sets(dfSubjectSets)
 
-    print('Что-если')
-    print('Введите значения через пробел')
-    lst = input().split(' ')
-    df = pd.DataFrame(columns=["Условие", "Следствие", "Поддержка", "Достоверность", "Лифт"])
-    for idx in range(len(dfAssociativeRules)):
-        if dfAssociativeRules.loc[idx]["Условие"] in [lst, reversed(lst)]:
-            df = pd.concat([df, dfAssociativeRules.loc[idx].to_frame().T])
-
-    print(df.reset_index(drop=True).to_string())
+    # print('Что-если')
+    # print('Введите значения через пробел')
+    # lst = input().split(' ')
+    # df = pd.DataFrame(columns=["Условие", "Следствие", "Поддержка", "Достоверность", "Лифт"])
+    # for idx in range(len(dfAssociativeRules)):
+    #     if dfAssociativeRules.loc[idx]["Условие"] in [lst, reversed(lst)]:
+    #         df = pd.concat([df, dfAssociativeRules.loc[idx].to_frame().T])
+    #
+    # print(df.reset_index(drop=True).to_string())
 
 
 main()

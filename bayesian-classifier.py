@@ -1,40 +1,88 @@
 import pandas as pd
+import numpy as np
+from sklearn import metrics
+from sklearn.naive_bayes import GaussianNB
 
-df = pd.read_excel('bl.xlsx')
-print(df.to_string())
 
-# Параметры человека, у которого хотим предсказать статус
-FIELDS = ['Опыт_разработки', 'Уровень_знаний', 'Желаемая_должность', 'Английский_язык']
-X = [1, 'Средний', 'Д', 1]
+def Normal(n, mu, var):
+    # Функция для возврата pdf нормального (mu, var) значения, вычисленного при x
+    sd = np.sqrt(var)
+    return (np.e ** (-0.5 * ((n - mu) / sd) ** 2)) / (sd * np.sqrt(2 * np.pi))
 
-approved_count = list(df['Статус']).count('Одобрено')
-refused_count = list(df['Статус']).count('Отказано')
-approved_p = approved_count / len(df)
-refused_p = refused_count / len(df)
-print(f'\nP(Статус=Отказано) = {round(refused_p, 3)}, P(Статус=Одобрено) = {round(approved_p, 3)}')
 
-X_approve_p = 1
-X_refuse_p = 1
-for param in enumerate(X):
-    print(
-        f"P({FIELDS[param[0]]}={param[1]} | Статус=Одобрено) ="
-        f" {round(len(df[(df['Статус'] == 'Одобрено') & (df[FIELDS[param[0]]] == param[1])]) / approved_count, 3)}"
-    )
-    X_approve_p *= len(df[(df['Статус'] == 'Одобрено') & (df[FIELDS[param[0]]] == param[1])]) / approved_count
+def Predict(X):
+    Predictions = []
 
-    print(
-        f"P({FIELDS[param[0]]}={param[1]} | Статус=Отказано) ="
-        f" {round(len(df[(df['Статус'] == 'Отказано') & (df[FIELDS[param[0]]] == param[1])]) / refused_count, 3)}"
-    )
-    X_refuse_p *= len(df[(df['Статус'] == 'Отказано') & (df[FIELDS[param[0]]] == param[1])]) / refused_count
+    for i in X.index:  # Цикл по каждому экземпляру
 
-print(f'\nP(X | Статус=Одобрено) = {round(X_approve_p, 3)}')
-print(f'P(X | Статус=Отказано) = {round(X_refuse_p, 3)}')
-a = X_approve_p * approved_p
-b = X_refuse_p * refused_p
-print(f'P(X | Статус=Одобрено) * P(Статус=Одобрено) = {round(a, 3)}')
-print(f'P(X | Статус=Отказано) * P(Статус=Отказано) = {round(b, 3)}')
+        ClassLikelihood = []
+        instance = X.loc[i]
+        print(f'\n{instance}')
 
-print('Нормализованные значения:')
-print(f'Вероятность одобрения {round(a / (a + b), 3)}')
-print(f'Вероятность отказа {round(b / (b + a), 3)}')
+        for cls in classes:  # Цикл по каждому классу
+
+            FeatureLikelihoods = [np.log(prior[cls])]  # Вероятности появления признаков
+            print(cls)
+            print(f'log P (C{i}) = {FeatureLikelihoods}')
+
+            for col in x_train.columns:
+                data = instance[col]
+                print(col, data)
+
+                mean = means[col].loc[cls]  # Найдите среднее значение столбца 'col', которые находятся в классе 'cls'
+                variance = var[col].loc[cls]  # Найдите дисперсию столбцов 'col', которые находятся в классе 'cls'
+
+                Likelihood = Normal(data, mean, variance)  # Вероятность
+                print(f'log P({col}={data} ∣ C{i}) = {Likelihood}')
+                Likelihood = np.log(Likelihood) if Likelihood != 0 else 1 / len(train)
+                FeatureLikelihoods.append(Likelihood)
+
+            TotalLikelihood = sum(FeatureLikelihoods)  # апостериорная вероятность
+            print(f'log P(C{i} ∣ x) = {TotalLikelihood}')
+            ClassLikelihood.append(TotalLikelihood)
+
+        MaxIndex = ClassLikelihood.index(max(ClassLikelihood))  # Наибольшее апостериорное значение
+        Prediction = classes[MaxIndex]
+        Predictions.append(Prediction)
+
+    return Predictions
+
+
+def Accuracy(y, prediction):
+    # Функция для вычисления точности
+    y = list(y)
+    prediction = list(prediction)
+    score = sum(i == j for i, j in zip(y, prediction))
+
+    return score / len(y)
+
+
+df = pd.read_excel("iris.xlsx")
+df = df.drop("Id", axis=1)
+# print(df.to_string())
+
+# Разделение на тестовые данных
+train = df.sample(frac=0.2, random_state=1)
+test = df.drop(train.index)
+
+y_train = train["Вид"]
+x_train = train.drop("Вид", axis=1)
+
+y_test = test["Вид"]
+x_test = test.drop("Вид", axis=1)
+
+means = train.groupby(["Вид"]).mean()  # среднее значение каждого класса
+var = train.groupby(["Вид"]).var()  # Дисперсия
+prior = (train.groupby("Вид").count() / len(train)).iloc[:, 1]  # Априорная вероятность каждого класса
+classes = np.unique(train["Вид"].tolist())  # Классы
+
+PredictTrain = Predict(x_train)
+PredictTest = Predict(x_test)
+
+
+clf = GaussianNB()
+clf.fit(x_train, y_train)
+
+
+predicted = clf.predict([[4.8, 3.4, 1.6, 0.2]])  # 0:Overcast, 2:Mild, 1:Normal, 1.True
+print("Прогнозируемое значение:", predicted)
